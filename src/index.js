@@ -75,35 +75,45 @@ function createMarkers() {
   const endLat = 12.9716, // Bengaluru
     endLon = 77.5946;
 
-  createMarker(startLat, startLon, 0xff0000, true, "Delhi"); // Delhi
-  createMarker(endLat, endLon, 0x0000ff, true, "Bengaluru"); // Bengaluru
+  createMarkerWithSphere(startLat, startLon, 0xff0000, "Delhi");
+  createMarkerWithSphere(endLat, endLon, 0x0000ff, "Bengaluru");
 }
 
-function createMarker(lat, lon, color, pulsing = false, name = "") {
+function createMarkerWithSphere(lat, lon, color, name) {
+  // Create the pulsing circle
   const innerRadius = 0.08;
   const outerRadius = 0.1;
-  const markerGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 32);
-  const markerMaterial = new THREE.MeshBasicMaterial({
+  const circleGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 32);
+  const circleMaterial = new THREE.MeshBasicMaterial({
     color,
     side: THREE.DoubleSide,
   });
 
-  const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+  const circle = new THREE.Mesh(circleGeometry, circleMaterial);
+  circle.position.copy(latLongToVector3(lat, lon, radius + 0.01));
+  circle.lookAt(0, 0, 0);
 
-  // Position the marker on the globe
-  marker.position.copy(latLongToVector3(lat, lon, radius + 0.01));
-  marker.lookAt(0, 0, 0);
-
-  marker.userData = {
-    marker: true,
+  circle.userData = {
+    pulsing: true,
     originalColor: color,
-    pulsing,
-    originalInnerRadius: innerRadius,
-    originalOuterRadius: outerRadius,
     name,
   };
 
-  scene.add(marker);
+  scene.add(circle);
+
+  // Create the green sphere marker
+  const sphereGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+  const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+  sphere.position.copy(latLongToVector3(lat, lon, radius + 0.02));
+
+  sphere.userData = {
+    marker: true,
+    originalColor: 0x00ff00,
+    name,
+  };
+
+  scene.add(sphere);
 }
 
 function createCurve() {
@@ -129,7 +139,7 @@ function createCurveBetweenPoints(lat1, lon1, lat2, lon2, globeRadius, height) {
   mid.normalize().multiplyScalar(globeRadius + height);
 
   const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-  const tubeGeometry = new THREE.TubeGeometry(curve, 50, 0.05, 8, false);
+  const tubeGeometry = new THREE.TubeGeometry(curve, 50, 0.01, 8, false);
   const tubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
   const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
   scene.add(tube);
@@ -202,12 +212,7 @@ function animate() {
 }
 
 function highlightMarker(marker) {
-  // Swap the colors of Delhi and Bangalore on hover
-  if (marker.userData.name === "Delhi") {
-    marker.material.color.set(0x0000ff);
-  } else if (marker.userData.name === "Bengaluru") {
-    marker.material.color.set(0xff0000);
-  }
+  marker.material.color.set(0x0000ff);
 }
 
 function resetMarkerAppearance(marker) {
