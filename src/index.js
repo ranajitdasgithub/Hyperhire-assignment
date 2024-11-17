@@ -1,5 +1,5 @@
-import * as THREE from "../node_modules/three/build/three.module.js";
-import { OrbitControls } from "../node_modules/three/examples/jsm/controls/OrbitControls.js";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import earthTexturePath from "../public/earthmap_clouds.jpeg";
 
 // Global variables
